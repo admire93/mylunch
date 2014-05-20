@@ -253,6 +253,8 @@ class LunchClient extends JFrame implements ActionListener {
         try {
             List<String> order = new ArrayList<String>();
             order.add(addressTextField.getText());
+            order.add(lunchText.get(currentIndex));
+            order.add(menuName);
             if(out != null) {
                 out.writeUTF(StringUtils.join(order, "\t"));
                 out.flush();

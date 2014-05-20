@@ -65,7 +65,12 @@ class MyLunchWorker implements Runnable {
         try {
             while(!Thread.currentThread().isInterrupted()) {
                 String message = in.readUTF();
-                System.out.println(message);
+                String[] r = message.split("\t");
+                System.out.println("----------------");
+                System.out.println("주문 내역");
+                System.out.println(String.format("주소: %s", r[0]));
+                System.out.println(String.format("식당: %s", r[1]));
+                System.out.println(String.format("메뉴: %s", r[2]));
             }
         } catch(EOFException e) {
             System.out.println(String.format("손님 '%s' 종료.", socket.getInetAddress()));
