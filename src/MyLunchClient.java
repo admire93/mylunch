@@ -67,12 +67,16 @@ class LunchClient extends JFrame implements ActionListener {
 
     private List<String> lunchImgPath = Arrays.asList(
             "cheese",
-            "soondae"
+            "soondae",
+            "bongus",
+            "pizza"
     );
 
     private List<String> lunchText = Arrays.asList(
             "치즈밥",
-            "순대국"
+            "순대국",
+            "봉구스",
+            "피자천국"
     );
 
     private List<List<String>> lunchMenuText = Arrays.asList(
@@ -85,6 +89,16 @@ class LunchClient extends JFrame implements ActionListener {
                     "고기만 순대국",
                     "내장만 순대국",
                     "혼합 순대국"
+            ),
+            Arrays.asList(
+                    "봉구스 밥버거",
+                    "햄 밥버거",
+                    "치즈 밥버거"
+            ),
+            Arrays.asList(
+                    "치즈 피자",
+                    "콤비네이션 피자",
+                    "불고기 피자"
             )
     );
 
@@ -239,10 +253,13 @@ class LunchClient extends JFrame implements ActionListener {
         try {
             List<String> order = new ArrayList<String>();
             order.add(addressTextField.getText());
-
-            out.writeUTF(StringUtils.join(order, "\t"));
-            label1.setText("Thank you!");
-            out.flush();
+            if(out != null) {
+                out.writeUTF(StringUtils.join(order, "\t"));
+                out.flush();
+                label1.setText("주문되었습니다.");
+            } else {
+                label1.setText("인터넷 연결을 확인해주세요.");
+            }
         } catch (Exception e) {
             label1.setText("Error : " + e.toString());
         }
@@ -250,7 +267,6 @@ class LunchClient extends JFrame implements ActionListener {
 
     public void selectLunch() {
         int randomIndex = (int)(Math.random() * (lunchImgPath.size()));
-        System.out.println(String.format("Hello %d", randomIndex));
 
         String basePath = "./assets/%s.png";
 
