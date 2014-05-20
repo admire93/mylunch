@@ -12,6 +12,7 @@ import java.io.*;
 import java.net.Socket;
 import java.rmi.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MyLunchClient {
@@ -26,6 +27,12 @@ public class MyLunchClient {
 }
 
 class LunchClient extends JFrame implements ActionListener {
+    private Timer timer = new Timer(200, this);
+
+    private boolean running = false;
+
+    int count = 0;
+
     private JButton orderButton;
 
     private JButton lunchSelectButton;
@@ -42,15 +49,122 @@ class LunchClient extends JFrame implements ActionListener {
 
     private JLabel imgLabel;
 
+    private ButtonGroup jbg1;
+
+    private JRadioButton radio1;
+
+    private JRadioButton radio2;
+
+    private JRadioButton radio3;
+
     private Socket socket;
 
     private DataInputStream in;
 
     private DataOutputStream out;
 
+    private int currentIndex = 0;
+
+    private List<String> lunchImgPath = Arrays.asList(
+            "cheese",
+            "soondae"
+    );
+
+    private List<String> lunchText = Arrays.asList(
+            "치즈밥",
+            "순대국"
+    );
+
+    private List<List<String>> lunchMenuText = Arrays.asList(
+            Arrays.asList(
+                    "갈비 치즈밥",
+                    "김치 치즈밥",
+                    "걍 치즈밥"
+            ),
+            Arrays.asList(
+                    "고기만 순대국",
+                    "내장만 순대국",
+                    "혼합 순대국"
+            )
+    );
+
     String orderText = "음식을 주문합니다.";
 
     String lunchSelectText = "점심을 골라보아요!!";
+
+    String menuName;
+
+    public void initPanelNorth(JPanel panel) {
+        orderButton = new JButton();
+        lunchSelectButton = new JButton();
+
+        label1 = new JLabel();
+
+        panel.setLayout(new BorderLayout(10, 10));
+        panel.add(addressTextField, BorderLayout.NORTH);
+        add(panel, BorderLayout.NORTH);
+    }
+
+    public void initPanelMiddle(JPanel panel) throws IOException {
+        BufferedImage img = ImageIO.read(new File("./assets/lunch.png"));
+        ImageIcon icon = new ImageIcon(img);
+        imgLabel = new JLabel(icon);
+
+        radio1 = new JRadioButton("메뉴", false);
+        radio2 = new JRadioButton("정해", false);
+        radio3 = new JRadioButton("주세요", false);
+
+        radio1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                menuName = radio1.getText();
+            }
+        });
+
+        radio2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                menuName = radio2.getText();
+            }
+        });
+
+        radio3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                menuName = radio3.getText();
+            }
+        });
+
+        jbg1 = new ButtonGroup();
+
+        jbg1.add(radio1);
+        jbg1.add(radio2);
+        jbg1.add(radio3);
+
+        panel.add(imgLabel, BorderLayout.NORTH);
+        panel.add(radio1);
+        panel.add(radio2);
+        panel.add(radio3);
+        add(panel, BorderLayout.CENTER);
+    }
+
+    public void initPanelSouth(JPanel panel) {
+        lunchSelectButton.setText(lunchSelectText);
+        lunchSelectButton.addActionListener(this);
+
+        orderButton.setText(orderText);
+        orderButton.addActionListener(this);
+
+        panel.setLayout(new BorderLayout());
+        panel.add(lunchSelectButton, BorderLayout.LINE_START);
+        panel.add(orderButton, BorderLayout.LINE_END);
+
+        label1.setBackground(new Color(153, 153, 255));
+        label1.setText("점심을 골라주세요 :)");
+
+        panel.add(label1, BorderLayout.SOUTH);
+        add(panel, BorderLayout.SOUTH);
+    }
 
     public void initUI(int width, int height) throws IOException {
         addressTextField = new JTextField("주소를 적어주세요.");
@@ -60,39 +174,9 @@ class LunchClient extends JFrame implements ActionListener {
         panel2 = new JPanel();
         panel3 = new JPanel();
 
-        orderButton = new JButton();
-        lunchSelectButton = new JButton();
-
-        label1 = new JLabel();
-
-        panel1.setLayout(new BorderLayout(10, 10));
-        panel1.add(addressTextField, BorderLayout.NORTH);
-        add(panel1, BorderLayout.NORTH);
-
-
-
-        BufferedImage img = ImageIO.read(new File("./assets/abc.png"));
-        ImageIcon icon = new ImageIcon(img);
-        imgLabel = new JLabel(icon);
-
-        panel2.add(imgLabel, BorderLayout.NORTH);
-        add(panel2, BorderLayout.CENTER);
-
-        lunchSelectButton.setText(lunchSelectText);
-        lunchSelectButton.addActionListener(this);
-
-        orderButton.setText(orderText);
-        orderButton.addActionListener(this);
-
-        panel3.setLayout(new BorderLayout());
-        panel3.add(lunchSelectButton, BorderLayout.NORTH);
-        panel3.add(orderButton, BorderLayout.CENTER);
-
-        label1.setBackground(new Color(153, 153, 255));
-        label1.setText("점심을 골라주세요 :)");
-
-        panel3.add(label1, BorderLayout.SOUTH);
-        add(panel3, BorderLayout.SOUTH);
+        initPanelNorth(panel1);
+        initPanelMiddle(panel2);
+        initPanelSouth(panel3);
     }
 
     public LunchClient(int width, int height, String host) throws IOException {
@@ -129,17 +213,24 @@ class LunchClient extends JFrame implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent event) {
-        if(event.getActionCommand().equals(orderText)) {
-            label1.setText("주문 접수중 ...");
-            sendOrder();
-        } else if(event.getActionCommand().equals(lunchSelectText)) {
-            BufferedImage img = null;
-            try {
-                img = ImageIO.read(new File("./assets/def.png"));
-                ImageIcon thisIcon = new ImageIcon(img);
-                imgLabel.setIcon(thisIcon);
-            } catch (IOException e) {
-                e.printStackTrace();
+        if(event.getActionCommand() != null) {
+            if(event.getActionCommand().equals(orderText)) {
+                label1.setText("주문 접수중 ...");
+                sendOrder();
+            } else if(event.getActionCommand().equals(lunchSelectText)) {
+                if (!running) {
+                    timer.start();
+                    running = true;
+                }
+                selectLunch();
+            }
+        } else {
+            selectLunch();
+            count++;
+            if (count == 20) {
+                timer.stop();
+                count = 0;
+                running = false;
             }
         }
     }
@@ -157,12 +248,40 @@ class LunchClient extends JFrame implements ActionListener {
         }
     }
 
+    public void selectLunch() {
+        int randomIndex = (int)(Math.random() * (lunchImgPath.size()));
+        System.out.println(String.format("Hello %d", randomIndex));
+
+        String basePath = "./assets/%s.png";
+
+        BufferedImage img = null;
+
+        try {
+            img = ImageIO.read(new File(String.format(basePath, lunchImgPath.get(randomIndex))));
+            ImageIcon thisIcon = new ImageIcon(img);
+            imgLabel.setIcon(thisIcon);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        currentIndex = randomIndex;
+        radio1.setText(lunchMenuText.get(currentIndex).get(0));
+        radio2.setText(lunchMenuText.get(currentIndex).get(1));
+        radio3.setText(lunchMenuText.get(currentIndex).get(2));
+    }
+
 
     public void stop() {
         try {
-            in.close();
-            out.close();
-            socket.close();
+            if(in != null) {
+                in.close();
+            }
+            if(out != null) {
+                out.close();
+            }
+            if(socket != null) {
+                socket.close();
+            }
         } catch (IOException e) {
             label1.setText("Error : " + e.toString());
         }
