@@ -2,6 +2,7 @@ import com.sun.deploy.util.StringUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -63,6 +64,10 @@ class LunchClient extends JFrame implements ActionListener {
 
     private DataOutputStream out;
 
+    private JTable table;
+
+    private JScrollPane scrollPane;
+
     private int currentIndex = 0;
 
     private List<String> lunchImgPath = Arrays.asList(
@@ -109,20 +114,22 @@ class LunchClient extends JFrame implements ActionListener {
     String menuName;
 
     public void initPanelNorth(JPanel panel) {
-        orderButton = new JButton();
-        lunchSelectButton = new JButton();
+        addressTextField = new JTextField("주소를 적어주세요.");
+        addressTextField.setFont(new Font("SansSerif", Font.BOLD, 12));
 
-        label1 = new JLabel();
-
-        panel.setLayout(new BorderLayout(10, 10));
-        panel.add(addressTextField, BorderLayout.NORTH);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.add(addressTextField);
         add(panel, BorderLayout.NORTH);
     }
 
     public void initPanelMiddle(JPanel panel) throws IOException {
+        panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+
         BufferedImage img = ImageIO.read(new File("./assets/lunch.png"));
         ImageIcon icon = new ImageIcon(img);
         imgLabel = new JLabel(icon);
+        imgLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
+
 
         radio1 = new JRadioButton("메뉴", false);
         radio2 = new JRadioButton("정해", false);
@@ -155,35 +162,66 @@ class LunchClient extends JFrame implements ActionListener {
         jbg1.add(radio2);
         jbg1.add(radio3);
 
-        panel.add(imgLabel, BorderLayout.NORTH);
-        panel.add(radio1);
-        panel.add(radio2);
-        panel.add(radio3);
+        String rowData[][] = {
+                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
+                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
+                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
+                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
+                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
+                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
+                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
+                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
+        };
+
+        String columnNames[] = { "Column One", "Column Two", "Column Three"};
+
+        table = new JTable(rowData, columnNames);
+        table.setEnabled(false);
+
+        JPanel imgPane = new JPanel();
+        imgPane.setLayout(new BoxLayout(imgPane, BoxLayout.PAGE_AXIS));
+        imgPane.add(imgLabel);
+        imgPane.add(table);
+
+        JPanel radioPane = new JPanel();
+        radio3.setBorder(new EmptyBorder(0, 0, 0, 50));
+        radioPane.setLayout(new BoxLayout(radioPane, BoxLayout.LINE_AXIS));
+        radioPane.add(radio1);
+        radioPane.add(radio2);
+        radioPane.add(radio3);
+
+        panel.add(imgPane);
+        panel.add(radioPane);
+
         add(panel, BorderLayout.CENTER);
     }
 
     public void initPanelSouth(JPanel panel) {
+        orderButton = new JButton();
+        lunchSelectButton = new JButton();
+
         lunchSelectButton.setText(lunchSelectText);
         lunchSelectButton.addActionListener(this);
 
         orderButton.setText(orderText);
         orderButton.addActionListener(this);
 
-        panel.setLayout(new BorderLayout());
-        panel.add(lunchSelectButton, BorderLayout.LINE_START);
-        panel.add(orderButton, BorderLayout.LINE_END);
+        JButton a = new JButton();
+        a.setText("add");
 
-        label1.setBackground(new Color(153, 153, 255));
-        label1.setText("점심을 골라주세요 :)");
+        JButton b = new JButton();
+        b.setText("readd");
 
-        panel.add(label1, BorderLayout.SOUTH);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+        panel.add(lunchSelectButton);
+        panel.add(a);
+        panel.add(b);
+        panel.add(orderButton);
+
         add(panel, BorderLayout.SOUTH);
     }
 
     public void initUI(int width, int height) throws IOException {
-        addressTextField = new JTextField("주소를 적어주세요.");
-        addressTextField.setFont(new Font("SansSerif", Font.BOLD, 12));
-
         panel1 = new JPanel();
         panel2 = new JPanel();
         panel3 = new JPanel();
@@ -210,6 +248,7 @@ class LunchClient extends JFrame implements ActionListener {
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
+        this.setResizable(false);
 
         connect(host);
     }

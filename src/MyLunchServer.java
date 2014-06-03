@@ -6,34 +6,22 @@ import java.util.Date;
 public class MyLunchServer {
     public static void main(String args[]) throws IOException {
         if(args.length == 0) {
+            System.out.println("서버를 시작하는데 필요한 argument가 존재하지않습니다");
+            return;
         }
 
         try {
-            LunchServer server = new LunchServer(9000);
-            server.run();
+            ServerSocket server = new ServerSocket(9000);
+            System.out.println("내 점심 서버가 시작되었습니다.");
+            while(true) {
+                Socket client = server.accept();
+                MyLunchWorker worker = new MyLunchWorker(client);
+                worker.start();
+            }
         } catch(IOException e) {
             System.out.println("서버가 정상적으로 시작되지않았습니다.");
             e.printStackTrace();
         }
-    }
-}
-
-class LunchServer {
-
-    ServerSocket server;
-
-    public LunchServer(int port) throws IOException {
-        server = new ServerSocket(port);
-    }
-
-    void run() throws IOException {
-        System.out.println("내 점심 서버가 시작되었습니다.");
-        while(true) {
-            Socket client = server.accept();
-            MyLunchWorker worker = new MyLunchWorker(client);
-            worker.start();
-        }
-
     }
 }
 
