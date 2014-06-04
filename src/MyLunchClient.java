@@ -19,7 +19,7 @@ import java.util.List;
 public class MyLunchClient {
     public static void main(String[] args) {
         try {
-            final LunchClient myLunch = new LunchClient(600, 400, "127.0.0.1");
+            final LunchClient myLunch = new LunchClient(600, 400, "localhost", 9000);
         } catch (IOException e) {
             System.out.println("프로그램이 정상적으로 실행되지못했습니다.");
             e.printStackTrace();
@@ -116,11 +116,11 @@ class LunchClient extends JFrame implements ActionListener {
 
     private String orderText = "음식을 주문합니다.";
 
-    private String lunchSelectText = "점심을 골라보아요!!";
+    private String lunchSelectText = "식당 무작위 선택";
 
     private String menuAddButtonText = "음식 추가";
 
-    private String menuClearButtonText = "다시 고르기";
+    private String menuClearButtonText = "주문 내역 초기화";
 
     private String menuName;
 
@@ -188,7 +188,7 @@ class LunchClient extends JFrame implements ActionListener {
                 { "", "", ""}
         };
 
-        String columnNames[] = { "Column One", "Column Two", "Column Three"};
+        String columnNames[] = { "가게이름", "메뉴", "갯수"};
 
         table = new JTable(rowData, columnNames);
         table.setEnabled(false);
@@ -242,10 +242,10 @@ class LunchClient extends JFrame implements ActionListener {
 
         panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
         panel.add(lunchSelectButton);
-        panel.add(menuAddButton);
         panel.add(menuClearButton);
-        panel.add(orderButton);
         panel.add(menuNumberCombo);
+        panel.add(menuAddButton);
+        panel.add(orderButton);
 
         add(panel, BorderLayout.SOUTH);
     }
@@ -260,7 +260,7 @@ class LunchClient extends JFrame implements ActionListener {
         initPanelSouth(panel3);
     }
 
-    public LunchClient(int width, int height, String host) throws IOException {
+    public LunchClient(int width, int height, String host, int port) throws IOException {
         initUI(width, height);
 
         final LunchClient that = this;
@@ -279,12 +279,12 @@ class LunchClient extends JFrame implements ActionListener {
         this.setVisible(true);
         this.setResizable(false);
 
-        connect(host);
+        connect(host, port);
     }
 
-    void connect(String host) {
+    void connect(String host, int port) {
         try {
-            socket = new Socket(host, 9000);
+            socket = new Socket(host, port);
             in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
         } catch (UnknownHostException e) {
@@ -298,7 +298,6 @@ class LunchClient extends JFrame implements ActionListener {
         String command = event.getActionCommand();
         if(command != null) {
             if(command.equals(orderText)) {
-                label1.setText("주문 접수중 ...");
                 sendOrder();
             } else if(command.equals(lunchSelectText)) {
                 if (!running) {
@@ -328,7 +327,8 @@ class LunchClient extends JFrame implements ActionListener {
             String address = addressTextField.getText();
             for(int i = 0; i < sizeOfMenuTable; i++) {
                 if(!table.getValueAt(i, 0).equals("")) {
-                    order.add(String.format("%s\t%s\t%s\t2", address, table.getValueAt(i, 0), table.getValueAt(i, 1)));
+                    order.add(String.format("%s\t%s\t%s\t%s",
+                            address, table.getValueAt(i, 0), table.getValueAt(i, 1), table.getValueAt(0, 2)));
                 }
             }
             if(out != null) {
