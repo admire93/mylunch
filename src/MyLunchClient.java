@@ -114,17 +114,19 @@ class LunchClient extends JFrame implements ActionListener {
             )
     );
 
-    String orderText = "음식을 주문합니다.";
+    private String orderText = "음식을 주문합니다.";
 
-    String lunchSelectText = "점심을 골라보아요!!";
+    private String lunchSelectText = "점심을 골라보아요!!";
 
-    String menuAddButtonText = "음식 추가";
+    private String menuAddButtonText = "음식 추가";
 
-    String menuClearButtonText = "다시 고르기";
+    private String menuClearButtonText = "다시 고르기";
 
-    String menuName;
+    private String menuName;
 
     private int sizeOfMenuTable = 8;
+
+    private int menuNumber = 1;
 
     public void initPanelNorth(JPanel panel) {
         addressTextField = new JTextField("주소를 적어주세요.");
@@ -228,11 +230,22 @@ class LunchClient extends JFrame implements ActionListener {
         menuClearButton.setText(menuClearButtonText);
         menuClearButton.addActionListener(this);
 
+        String[] num = {"1개", "2개", "3개", "4개", "5개"};
+        final JComboBox menuNumberCombo = new JComboBox(num);
+        menuNumberCombo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                menuNumber = menuNumberCombo.getSelectedIndex() + 1;
+            }
+        });
+
+
         panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
         panel.add(lunchSelectButton);
         panel.add(menuAddButton);
         panel.add(menuClearButton);
         panel.add(orderButton);
+        panel.add(menuNumberCombo);
 
         add(panel, BorderLayout.SOUTH);
     }
@@ -369,7 +382,7 @@ class LunchClient extends JFrame implements ActionListener {
         if(rowOfMenu < sizeOfMenuTable) {
             table.setValueAt(lunchText.get(currentIndex), rowOfMenu, 0);
             table.setValueAt(menuName, rowOfMenu, 1);
-            table.setValueAt("2개", rowOfMenu, 2);
+            table.setValueAt(String.format("%d개", menuNumber), rowOfMenu, 2);
             rowOfMenu++;
         }
     }
