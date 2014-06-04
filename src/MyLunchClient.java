@@ -28,6 +28,7 @@ public class MyLunchClient {
 }
 
 class LunchClient extends JFrame implements ActionListener {
+
     private Timer timer = new Timer(200, this);
 
     private boolean running = false;
@@ -68,7 +69,13 @@ class LunchClient extends JFrame implements ActionListener {
 
     private JScrollPane scrollPane;
 
+    private JButton menuAddButton;
+
+    private JButton menuClearButton;
+
     private int currentIndex = 0;
+
+    private int rowOfMenu = 0;
 
     private List<String> lunchImgPath = Arrays.asList(
             "cheese",
@@ -111,7 +118,13 @@ class LunchClient extends JFrame implements ActionListener {
 
     String lunchSelectText = "점심을 골라보아요!!";
 
+    String menuAddButtonText = "음식 추가";
+
+    String menuClearButtonText = "다시 고르기";
+
     String menuName;
+
+    private int sizeOfMenuTable = 8;
 
     public void initPanelNorth(JPanel panel) {
         addressTextField = new JTextField("주소를 적어주세요.");
@@ -163,20 +176,21 @@ class LunchClient extends JFrame implements ActionListener {
         jbg1.add(radio3);
 
         String rowData[][] = {
-                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
-                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
-                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
-                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
-                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
-                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
-                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
-                { "Row1-Column1", "Row1-Column2", "Row1-Column3"},
+                { "", "", ""},
+                { "", "", ""},
+                { "", "", ""},
+                { "", "", ""},
+                { "", "", ""},
+                { "", "", ""},
+                { "", "", ""},
+                { "", "", ""}
         };
 
         String columnNames[] = { "Column One", "Column Two", "Column Three"};
 
         table = new JTable(rowData, columnNames);
         table.setEnabled(false);
+        table.setSize(new Dimension(500, 100));
 
         JPanel imgPane = new JPanel();
         imgPane.setLayout(new BoxLayout(imgPane, BoxLayout.PAGE_AXIS));
@@ -206,16 +220,18 @@ class LunchClient extends JFrame implements ActionListener {
         orderButton.setText(orderText);
         orderButton.addActionListener(this);
 
-        JButton a = new JButton();
-        a.setText("add");
+        menuAddButton = new JButton();
+        menuAddButton.setText(menuAddButtonText);
+        menuAddButton.addActionListener(this);
 
-        JButton b = new JButton();
-        b.setText("readd");
+        menuClearButton = new JButton();
+        menuClearButton.setText(menuClearButtonText);
+        menuClearButton.addActionListener(this);
 
         panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
         panel.add(lunchSelectButton);
-        panel.add(a);
-        panel.add(b);
+        panel.add(menuAddButton);
+        panel.add(menuClearButton);
         panel.add(orderButton);
 
         add(panel, BorderLayout.SOUTH);
@@ -266,16 +282,21 @@ class LunchClient extends JFrame implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent event) {
-        if(event.getActionCommand() != null) {
-            if(event.getActionCommand().equals(orderText)) {
+        String command = event.getActionCommand();
+        if(command != null) {
+            if(command.equals(orderText)) {
                 label1.setText("주문 접수중 ...");
                 sendOrder();
-            } else if(event.getActionCommand().equals(lunchSelectText)) {
+            } else if(command.equals(lunchSelectText)) {
                 if (!running) {
                     timer.start();
                     running = true;
                 }
                 selectLunch();
+            } else if(command.equals(menuAddButtonText)) {
+                addMenu();
+            } else if(command.equals(menuClearButtonText)) {
+                clearMenu();
             }
         } else {
             selectLunch();
@@ -291,19 +312,19 @@ class LunchClient extends JFrame implements ActionListener {
     public void sendOrder() {
         try {
             List<String> order = new ArrayList<String>();
-            order.add(addressTextField.getText());
-            order.add(lunchText.get(currentIndex));
-            order.add(menuName);
+            String address = addressTextField.getText();
+            for(int i = 0; i < sizeOfMenuTable; i++) {
+                if(!table.getValueAt(i, 0).equals("")) {
+                    order.add(String.format("%s\t%s\t%s\t2", address, table.getValueAt(i, 0), table.getValueAt(i, 1)));
+                }
+            }
             if(out != null) {
-                out.writeUTF(StringUtils.join(order, "\t"));
+                out.writeUTF(StringUtils.join(order, "\n"));
                 out.flush();
-                label1.setText("주문되었습니다.");
-            } else {
-                label1.setText("인터넷 연결을 확인해주세요.");
             }
         } catch (Exception e) {
-            label1.setText("Error : " + e.toString());
         }
+        clearMenu();
     }
 
     public void selectLunch() {
@@ -341,6 +362,23 @@ class LunchClient extends JFrame implements ActionListener {
             }
         } catch (IOException e) {
             label1.setText("Error : " + e.toString());
+        }
+    }
+
+    public void addMenu() {
+        if(rowOfMenu < sizeOfMenuTable) {
+            table.setValueAt(lunchText.get(currentIndex), rowOfMenu, 0);
+            table.setValueAt(menuName, rowOfMenu, 1);
+            table.setValueAt("2개", rowOfMenu, 2);
+            rowOfMenu++;
+        }
+    }
+
+    public void clearMenu() {
+        for(int i = 0; i < sizeOfMenuTable; i++) {
+            table.setValueAt("", i, 0);
+            table.setValueAt("", i, 1);
+            table.setValueAt("", i, 2);
         }
     }
 }
