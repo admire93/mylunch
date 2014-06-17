@@ -1,5 +1,3 @@
-import com.sun.deploy.util.StringUtils;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -460,7 +458,11 @@ class LunchClient extends JFrame implements ActionListener {
             }
             if(out != null) {
                 // 다른 주문내용은 \n으로 구분합니다. 알맞은 포맷으로 만든뒤에 서버로 전송합니다.
-                out.writeUTF(StringUtils.join(order, "\n"));
+                String allOrder = "";
+                for(String o : order) {
+                    allOrder += o + "\n";
+                }
+                out.writeUTF(allOrder.trim());
                 out.flush();
             }
         } catch (Exception e) {
